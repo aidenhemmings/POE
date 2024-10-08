@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import axios from 'axios';
 //import api from './services/api';
+axios.defaults.baseURL = 'https://localhost:5000';
+axios.defaults.withCredentials = true;
 
 function App() {
   const [email, setEmail] = useState('');
@@ -11,8 +13,38 @@ function App() {
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+  const fetchCsrfToken = async () => {
+    try {
+      const response = await axios.get('https://localhost:5000/api/csrf-token', { withCredentials: true });
+      console.log('fetched csrf token:', response.data.csrfToken)
+      return response.data.csrfToken;
+    } catch (error) {
+      console.error('Error fetching CSRF token:', error);
+      return null; 
+    }
+  };
+
+  useEffect(() => {
+    const getCsrfToken = async () => {
+      const token = await fetchCsrfToken();
+      if(token) {
+        console.log('csrf token is fetched successfully', token)
+      }
+      else
+      {
+        console.error('failed to fetch csrf token')
+      }
+    };
+    getCsrfToken();
+  }, []);
+
   const handleLogin = async (e) => {
     e.preventDefault();
+    const csrfToken = await fetchCsrfToken();
+    if (!csrfToken) {
+      setMessage('Failed to get CSRF token');
+      return;
+    }
 
     // Reset message
     setMessage('');
@@ -33,34 +65,32 @@ function App() {
 
     try {
       const response = await axios.post(
-        'http://localhost:5000/api/user/login',
+        'https://localhost:5000/api/user/login',
         { email, password },
         {
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'CSRF-Token': csrfToken
           },
+          withCredentials: true
         }
       );
       setMessage('Login successful');
-      setToken(response.data.token);
+      setToken(response.data.token); // Store token (if applicable)
     } catch (error) {
-      setMessage('Error during login: ' + (error.response?.data?.message || error.message));
+      if (error.response) {
+        // Server responded with a status other than 200
+        setMessage(`Error during login: ${error.response.data.message || error.message}`);
+      } else if (error.request) {
+        // Req made but no res was received
+        setMessage('Network error: No response from server. Please try again later.');
+      } else {
+        // Something else happened
+        setMessage(`Error: ${error.message}`);
+      }
     } finally {
       setLoading(false); // Stop loading state
     }
-
-    // try {
-    //   const response = await api.post('user/login', { email, password });
-    //   if (response.data.success) {
-    //     setMessage('Login successful');
-    //   } else {
-    //     setMessage('Login unsuccessful');
-    //   }
-    // } catch (error) {
-    //   setMessage('Error during login: ' + (error.response?.data?.message || error.message));
-    // } finally {
-    //   setLoading(false)
-    // }
   };
 
 
@@ -103,7 +133,11 @@ function App() {
           </div>
         )}
 
-        {message && <p style={message.startsWith('Error') ? styles.errorMessage : styles.successMessage}>{message}</p>}
+        {message && (
+          <p style={message.startsWith('Error') ? styles.errorMessage : styles.successMessage}>
+            {message}
+          </p>
+        )}
       </div>
     </div>
   );
