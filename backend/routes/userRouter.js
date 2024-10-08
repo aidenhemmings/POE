@@ -1,5 +1,5 @@
 const express = require('express')
-const {loginUser, signupUser, logoutUser} = require('../controllers/userController.js')
+const {loginUser, signupUser, logoutUser} = require('../controllers/userController')
 const ExpressBrute = require('express-brute')
 const store = new ExpressBrute.MemoryStore();
 

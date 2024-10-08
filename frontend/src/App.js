@@ -37,12 +37,16 @@ function App() {
         { email, password },
         {
           headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'csrf-token': '8Gltslq7-Xgx3xTAT34YKcCsOnGke3Y65UXk'
           },
+          withCredentials: true,
         }
       );
       setMessage('Login successful');
       setToken(response.data.token);
+
+      localStorage.setItem('token', response.data.token)
     } catch (error) {
       setMessage('Error during login: ' + (error.response?.data?.message || error.message));
     } finally {
