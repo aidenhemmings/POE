@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+//import api from './services/api';
 
 function App() {
   const [email, setEmail] = useState('');
@@ -32,7 +33,7 @@ function App() {
 
     try {
       const response = await axios.post(
-        'http://localhost:5000/api/auth/login',
+        'http://localhost:5000/api/user/login',
         { email, password },
         {
           headers: {
@@ -47,6 +48,19 @@ function App() {
     } finally {
       setLoading(false); // Stop loading state
     }
+
+    // try {
+    //   const response = await api.post('user/login', { email, password });
+    //   if (response.data.success) {
+    //     setMessage('Login successful');
+    //   } else {
+    //     setMessage('Login unsuccessful');
+    //   }
+    // } catch (error) {
+    //   setMessage('Error during login: ' + (error.response?.data?.message || error.message));
+    // } finally {
+    //   setLoading(false)
+    // }
   };
 
 

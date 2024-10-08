@@ -16,7 +16,7 @@ const userSchema = new Schema({
     },
 }, {timestamps: true})
 
-userSchema.static.signup = async function (email, password) {
+userSchema.statics.signupUser = async function (email, password) {
 
     if(!email || !password)
     {
@@ -33,7 +33,7 @@ userSchema.static.signup = async function (email, password) {
         throw Error('Password invalid')
     }
 
-    const existingUser = await this.findOne(email)
+    const existingUser = await this.findOne({ email })
     if(existingUser) {
         throw Error('Email already taken')
     }
@@ -44,7 +44,7 @@ userSchema.static.signup = async function (email, password) {
     return user
 }
 
-userSchema.statics.login = async function (email, password) {
+userSchema.statics.loginUser = async function (email, password) {
     if(!email || !password) {
         throw Error('All fields must be filled')
     }
